@@ -1,0 +1,27 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-03-01\n"
+"PO-Revision-Date: 2023-03-01\n"
+"Language: \n"
+
+msgid "plugins.generic.announcementBlocks.displayName"
+msgstr "Announcement Types"
+
+msgid "plugins.generic.announcementBlocks.description"
+msgstr "Groups and visualize announcements by type."
+
+msgid "plugins.generic.announcementBlocks.setting.description"
+msgstr ""
+"\n"
+"\t\t<p>Enable the restriction in the backend.</p>\n"
+"\t\t<p>Check if you want that the relative section can be seen only by the Site Admin.\n"
+"\t\tIf not checked the Journal Manager, Journal Editor and Production editor\n"
+"\t\t\tcan view and manage the section.</p>"
+
