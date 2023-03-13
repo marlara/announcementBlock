@@ -12,6 +12,7 @@
  * @brief Manage the Announcement Types.
  */
 
+import('classes.core.Application');
 import('lib.pkp.classes.announcement.AnnouncementType');
 import('lib.pkp.classes.plugins.GenericPlugin');
 
@@ -20,16 +21,8 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
 	 * @copydoc GenericPlugin::register()
 	 */
 	public function register($category, $path, $mainContextId = NULL) {
-		$success = parent::register($category, $path, $mainContextId);
-		if ($success && $this->getEnabled($mainContextId)) { //see https://github.com/pkp/customBlockManager/blob/main/CustomBlockManagerPlugin.inc.php
-            // If the system isn't installed, or is performing an upgrade, don't
-            // register hooks. This will prevent DB access attempts before the
-            // schema is installed.
-			if (Application::isUnderMaintenance()) {
-                return true;
-            }
-
-            if ($this->getEnabled($mainContextId)) {
+        $success = parent::register($category, $path, $mainContextId);
+		if ($success && $this->getEnabled($mainContextId)){
                 $this->import('AnnouncementBlocksPlugin');
 
                 // Ensure that there is a context (journal or press)
@@ -41,20 +34,16 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
                         $contextId = $context ? $context->getId() : \PKP\core\PKPApplication::CONTEXT_SITE;
                     }
 
-                    // Load the announcement blocks we have created 
+                    // Load the announcements
                     $announcements = $this->getSetting($contextId, 'announcements'); //TO BE MODIFIED!
                     if (!is_array($announcements)) {
                         $announcements = [];
                     }
 
-                    // Loop through each announcement block and register it 
+                    // Loop through each announcements and get associated type 
                     $i = 0;
                     foreach ($announcements as $announcement) {
-                        PluginRegistry::register(
-                            'announcements',
-                            new AnnouncementBlocksPlugin($announcement, $this), 
-                            $this->getPluginPath() //TO BE MODIFIED!
-                        );
+                        $announcementType = $this->getAssocType();
                     }
                 }
 
@@ -62,10 +51,9 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
                 // permit administration of custom block plugins.
                 Hook::add('LoadComponentHandler', [$this, 'setupGridHandler']);
             }
-            return true;
+            return $success;
         }
-        return false;
-    }
+    
 
     //see also https://github.com/pkp/pkp-lib/blob/main/pages/announcement/AnnouncementHandler.php
 
