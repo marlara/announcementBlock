@@ -13,8 +13,26 @@
  */
 
  import('lib.pkp.pages.announcement.AnnouncementHandler');
+ import('lib.pkp.classes.announcement.AnnouncementTypeDAO');
 
  class AnnouncementTypesGridHandler extends AnnouncementHandler
  {
+    public function groupByType($args, $request)
+    {
+        //import('plugins.generic.AnnouncementBlocks.controllers.grid.form.AnnouncementBlockForm');
+        if (!$request->getContext()->getData('enableAnnouncements')) {
+            $request->getDispatcher()->handle404();
+        }
+        $group = array();
+        foreach ($announcement as $announcements) {
+            $id = $this->typeId();
+            $group[$id][] = $this->getById($id);
+            $templateMgr = TemplateManager::getManager();
+            $templateMgr->assign('announcementType', $announcementType);
+            return $announcementType;
+            //$announcement_type = $announcement->typeId();
+            //getById();
+        }
 
+    }
  }

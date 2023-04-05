@@ -13,7 +13,7 @@
  */
 
 import('classes.core.Application');
-import('lib.pkp.classes.announcement.AnnouncementType');
+//import('lib.pkp.classes.facades.Repo');
 import('lib.pkp.classes.plugins.GenericPlugin');
 
 class AnnouncementBlocksPlugin extends GenericPlugin {
@@ -34,37 +34,65 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
                         $contextId = $context ? $context->getId() : \PKP\core\PKPApplication::CONTEXT_SITE;
                     }
 
+                    
                     // Load the announcements
-                    $announcements = $this->getSetting($contextId, 'announcements'); //TO BE MODIFIED!
-                    if (!is_array($announcements)) {
-                        $announcements = [];
-                    }
+                    //$announcements = $this->getSetting($contextId, 'announcements'); //TO BE MODIFIED!
+                    //if (!is_array($announcements)) {
+                    //    $announcements = [];
+                    //}
 
                     // Loop through each announcements and get associated type 
-                    $i = 0;
-                    foreach ($announcements as $announcement) {
-                        $announcementType = $this->getAssocType();
-                    }
+                    //$i = 0;
+                    //foreach ($announcements as $announcement) {
+                    //    $announcementType = $this->getAssocType();
+                    //}
                 }
 
-                // This hook is used to register the components this plugin implements to
-                // permit administration of custom block plugins.
-                Hook::add('LoadComponentHandler', [$this, 'setupGridHandler']);
+                // This hook is used to register the components this plugin implements from the already existing AnnouncementHandler
+                HookRegistry::register('LoadComponentHandler', [$this, 'setupGridHandler']);
+                HookRegistry::register('TemplateManager::setupBackendPage', [$this, 'trySomething']);
             }
             return $success;
         }
     
 
     //see also https://github.com/pkp/pkp-lib/blob/main/pages/announcement/AnnouncementHandler.php
-
+    //and https://github.com/pkp/customBlockManager/blob/main/controllers/grid/form/CustomBlockForm.inc.php
+    //and https://github.com/pkp/pkp-lib/blob/efb124de36758eaece88ad911326302635198d03/controllers/grid/announcements/form/AnnouncementTypeForm.php
     
 
+    public function trySomething($hookName, $param)
+    {
+        import('lib.pkp.pages.announcement.AnnouncementHandler');
+        import('lib.pkp.classes.announcement.AnnouncementTypeDAO');
+
+        $request = Application::get()->getRequest();
+        $context = $request->getContext(); #https://docs.pkp.sfu.ca/dev/documentation/en/architecture
+        $contextId = $context ? $context->getId() : \PKP\core\PKPApplication::CONTEXT_SITE;
+        
+        $announcementTypeDao = DAORegistry::getDAO('AnnouncementTypeDAO');
+
+        $result = (new DAO())->retrieve( #https://php.watch/versions/8.0/non-static-static-call-fatal-error
+                "SELECT type_id,GROUP_CONCAT(announcement_id) FROM announcements WHERE assoc_id = '$contextId' GROUP BY type_id"
+            );
+        
+        $result_array = [];
+        foreach ($result as $row) {
+            $result_array[] = $row;
+        }
+        
+        print_r($result_array);
+        
+        print_r($contextId);
+    }
+    
      /**
      * Permit requests to the announcement block grid handler
      *
      * @param string $hookName The name of the hook being invoked
      */
     public function setupGridHandler($hookName, $params)
+    
     {
         $component = & $params[0];
         if ($component == 'plugins.generic.announcementBlocks.controllers.grid.AnnouncementTypesGridHandler') {
