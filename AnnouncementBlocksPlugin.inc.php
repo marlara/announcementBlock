@@ -33,23 +33,13 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
                         $context = $request->getContext();
                         $contextId = $context ? $context->getId() : \PKP\core\PKPApplication::CONTEXT_SITE;
                     }
-
-                    
-                    // Load the announcements
-                    //$announcements = $this->getSetting($contextId, 'announcements'); //TO BE MODIFIED!
-                    //if (!is_array($announcements)) {
-                    //    $announcements = [];
-                    //}
-
-                    // Loop through each announcements and get associated type 
-                    //$i = 0;
-                    //foreach ($announcements as $announcement) {
-                    //    $announcementType = $this->getAssocType();
-                    //}
                 }
 
-                // This hook is used to register the components this plugin implements from the already existing AnnouncementHandler
-                HookRegistry::register('LoadComponentHandler', [$this, 'setupGridHandler']);
+                //Hook::add('Template::Settings::website', [$this, 'callbackShowWebsiteSettingsTabs']); NO
+
+                // Intercept the LoadHandler hook to present
+                // announcement pages when requested.
+                Hook::add('LoadHandler', [$this, 'callbackHandleContent']);
                 HookRegistry::register('TemplateManager::setupBackendPage', [$this, 'trySomething']);
             }
             return $success;
@@ -71,55 +61,87 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
         $contextId = $context ? $context->getId() : \PKP\core\PKPApplication::CONTEXT_SITE;
         
         $announcementTypeDao = DAORegistry::getDAO('AnnouncementTypeDAO');
-
-        $result = (new DAO())->retrieve( #https://php.watch/versions/8.0/non-static-static-call-fatal-error
-                "SELECT type_id,GROUP_CONCAT(announcement_id) FROM announcements WHERE assoc_id = '$contextId' GROUP BY type_id"
-            );
+        
+        (new DAO())->retrieve( #https://php.watch/versions/8.0/non-static-static-call-fatal-error
+                "SELECT type_id,GROUP_CONCAT(announcement_id) as announcement_id FROM announcements WHERE assoc_id = '$contextId' GROUP BY type_id"
+        );
+        
         
         $result_array = [];
         foreach ($result as $row) {
-            $result_array[] = $row;
+            $result_array[] =  json_decode(json_encode($row), true);
         }
         
         print_r($result_array);
         
         print_r($contextId);
     }
-    
-     /**
-     * Permit requests to the announcement block grid handler
+
+
+    /**
+     * Declare the handler function to process the actual page PATH
      *
-     * @param string $hookName The name of the hook being invoked
+     * @param string $hookName The name of the invoked hook
+     * @param array $args Hook parameters
+     *
+     * @return bool Hook handling status
      */
-    public function setupGridHandler($hookName, $params)
-    
+    public function callbackHandleContent($hookName, $args)
     {
-        $component = & $params[0];
-        if ($component == 'plugins.generic.announcementBlocks.controllers.grid.AnnouncementTypesGridHandler') {
-            define('ACCOUNCEMENTBLOCKS_PLUGIN_NAME', $this->getName());
+        $request = Application::get()->getRequest();
+        $templateMgr = TemplateManager::getManager($request);
+
+        $page = & $args[0];
+        $op = & $args[1];
+        $handler = & $args[3];
+
+        /** @var StaticPagesDAO */
+        $staticPagesDao = DAORegistry::getDAO('StaticPagesDAO');
+        if ($page == 'pages' && $op == 'preview') {
+            // This is a preview request; mock up a static page to display.
+            // The handler class ensures that only managers and administrators
+            // can do this.
+            $staticPage = $staticPagesDao->newDataObject();
+            $staticPage->setContent((array) $request->getUserVar('content'), null);
+            $staticPage->setTitle((array) $request->getUserVar('title'), null);
+        } else {
+            // Construct a path to look for
+            $path = $page;
+            if ($op !== 'index') {
+                $path .= "/${op}";
+            }
+            if ($ops = $request->getRequestedArgs()) {
+                $path .= '/' . implode('/', $ops);
+            }
+
+            // Look for a static page with the given path
+            $context = $request->getContext();
+            $staticPage = $staticPagesDao->getByPath(
+                $context ? $context->getId() : Application::CONTEXT_ID_NONE,
+                $path
+            );
+        }
+
+        // Check if this is a request for a static page or preview.
+        if ($staticPage) {
+            // Trick the handler into dealing with it normally
+            $page = 'pages';
+            $op = 'view';
+
+            // It is -- attach the static pages handler.
+            $handler = new StaticPagesHandler($this, $staticPage);
             return true;
         }
         return false;
     }
 
-    /**
-     * @copydoc Plugin::manage()
+    //TO ELIMINATE, FOR ME
+
+     /**
+     * Permit requests to the announcement block grid handler
+     *
+     * @param string $hookName The name of the hook being invoked
      */
-    public function manage($args, $request)
-    {
-        $templateMgr = TemplateManager::getManager($request);
-        $dispatcher = $request->getDispatcher();
-        return $templateMgr->fetchAjax(
-            'announcementBlocksGridUrlGridContainer',
-            $dispatcher->url(
-                $request,
-                Application::ROUTE_COMPONENT,
-                null,
-                'plugins.generic.announcementBlocks.controllers.grid.AnnouncementTypesGridHandler',
-                'fetchGrid'
-            )
-        );
-    }
     
     /**
      * Provide a name for this plugin
@@ -149,3 +171,37 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
 
 }
 
+
+
+/*  CHUNK OF CODE NOT TO USE
+
+public function setupGridHandler($hookName, $params) //see https://github.com/pkp/staticPages/blob/175fbddcb2e86933f90360e78f5472873748644a/StaticPagesPlugin.php
+    {
+        $component = & $params[0];
+        $componentInstance = & $params[2];
+        if ($component == 'plugins.generic.staticPages.controllers.grid.StaticPageGridHandler') {
+            // Allow the static page grid handler to get the plugin object
+            $componentInstance = new StaticPageGridHandler($this);
+            return true;
+        }
+        return false;
+    }
+
+    public function manage($args, $request)
+    {
+        $templateMgr = TemplateManager::getManager($request);
+        $dispatcher = $request->getDispatcher();
+        return $templateMgr->fetchAjax(
+            'announcementBlocksGridUrlGridContainer',
+            $dispatcher->url(
+                $request,
+                Application::ROUTE_COMPONENT,
+                null,
+                'plugins.generic.announcementBlocks.controllers.grid.AnnouncementTypesHandler',
+                'fetchGrid'
+            )
+        );
+    }
+
+
+*/

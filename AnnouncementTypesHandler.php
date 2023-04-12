@@ -1,23 +1,23 @@
 <?php
 
 /**
-* @file plugins/generic/announcementBlocks/controllers/grid/AnnouncementTypesGridHandler.php
+* @file plugins/generic/announcementBlocks/AnnouncementTypesHandler.php
  *
  * Copyright Lara Marziali
  * Distributed under the GNU GPL v3. For full terms see the file LICENSE.
  *
- * @class AnnouncementTypesGridHandler
- * @ingroup controllers_grid_AnnouncementBlocks
- *
- * @brief Handle announcement types grid requests.
+ * @class AnnouncementTypedHandler
+ * 
+ * 
+ * @brief Handle requests for public announcement types functions.
  */
 
  import('lib.pkp.pages.announcement.AnnouncementHandler');
  import('lib.pkp.classes.announcement.AnnouncementTypeDAO');
 
- class AnnouncementTypesGridHandler extends AnnouncementHandler
+ class AnnouncementTypesHandler extends AnnouncementHandler
  {
-    public function groupByType($args, $request)
+    public function type($args, $request)
     {
         //import('plugins.generic.AnnouncementBlocks.controllers.grid.form.AnnouncementBlockForm');
         if (!$request->getContext()->getData('enableAnnouncements')) {
