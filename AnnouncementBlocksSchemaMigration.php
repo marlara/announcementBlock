@@ -16,6 +16,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+//see also https://github.com/pkp/pkp-lib/blob/a351645bf600be7e1c2ac705c6f6f66ced8e4b3c/classes/announcement/maps/Schema.php
 
 class AnnouncementBlocksSchemaMigration extends Migration
 {
@@ -25,17 +26,17 @@ class AnnouncementBlocksSchemaMigration extends Migration
     public function up()
     {
         Schema::table('', function (Blueprint $table) {
-            $table->bigInteger('')->nullable(false)->default()->change(); //see https://github.com/pkp/ops/blob/0659a6a8b2af341cff6bea8099624a9f27451ec6/classes/migration/upgrade/v3_4_0/I7191_SubmissionsDefaultStage.php
+            $table->string('path'); //see https://github.com/pkp/ops/blob/0659a6a8b2af341cff6bea8099624a9f27451ec6/classes/migration/upgrade/v3_4_0/I7191_SubmissionsDefaultStage.php
         });
     }
 
     /**
      * Reverse the downgrades
      */
-    public function down(): void
+    public function down()
     {
         Schema::table('', function (Blueprint $table) {
-            $table->bigInteger('')->nullable(false)->default()->change();
+            $table->string('path');
         });
     }
 }

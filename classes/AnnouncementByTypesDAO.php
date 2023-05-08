@@ -15,6 +15,8 @@
  import('lib.pkp.pages.announcement.AnnouncementHandler');
  import('lib.pkp.classes.announcement.AnnouncementTypeDAO');
 
+ //see https://github.com/pkp/pkp-lib/blob/a351645bf600be7e1c2ac705c6f6f66ced8e4b3c/api/v1/announcements/PKPAnnouncementHandler.php
+
  class AnnouncementByTypesDAO extends AnnouncementTypeDAO
  {
     public function groupByType($contextId)
