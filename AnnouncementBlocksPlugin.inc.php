@@ -16,6 +16,9 @@ import('classes.core.Application');
 //import('lib.pkp.classes.facades.Repo');
 import('lib.pkp.classes.plugins.GenericPlugin');
 
+import('lib.pkp.pages.announcement.AnnouncementHandler');
+import('lib.pkp.classes.announcement.AnnouncementTypeDAO');
+
 class AnnouncementBlocksPlugin extends GenericPlugin {
     /**
 	 * @copydoc GenericPlugin::register()
@@ -39,7 +42,8 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
 
                 // Intercept the LoadHandler hook to present
                 // announcement pages when requested.
-                Hook::add('LoadHandler', [$this, 'callbackHandleContent']);
+                //Hook::add('LoadHandler', [$this, 'callbackHandleContent']); Uncaught Error: Class "Hook" not found in /var/www/ojs_locale/plugins/generic/announcementBlocks/AnnouncementBlocksPlugin.inc.php:45
+               
                 HookRegistry::register('TemplateManager::setupBackendPage', [$this, 'trySomething']);
             }
             return $success;
@@ -53,16 +57,13 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
 
     public function trySomething($hookName, $param)
     {
-        import('lib.pkp.pages.announcement.AnnouncementHandler');
-        import('lib.pkp.classes.announcement.AnnouncementTypeDAO');
-
         $request = Application::get()->getRequest();
         $context = $request->getContext(); #https://docs.pkp.sfu.ca/dev/documentation/en/architecture
         $contextId = $context ? $context->getId() : \PKP\core\PKPApplication::CONTEXT_SITE;
         
         $announcementTypeDao = DAORegistry::getDAO('AnnouncementTypeDAO');
         
-        (new DAO())->retrieve( #https://php.watch/versions/8.0/non-static-static-call-fatal-error
+        $result = (new DAO())->retrieve( #https://php.watch/versions/8.0/non-static-static-call-fatal-error
                 "SELECT type_id,GROUP_CONCAT(announcement_id) as announcement_id FROM announcements WHERE assoc_id = '$contextId' GROUP BY type_id"
         );
         
@@ -74,7 +75,20 @@ class AnnouncementBlocksPlugin extends GenericPlugin {
         
         print_r($result_array);
         
-        print_r($contextId);
+        //print_r($contextId);
+
+
+        //setPath() WRONG
+        $params = [(int) $announcement_id];
+        if ($contextId !== null) {
+            $params[] = (int) $contextId;
+        }
+        foreach ($params as $param) {
+            echo 'typeId: ' . print_r($param, true); //https://stackoverflow.com/a/35934745/5102877
+        }
+        
+        
+        
     }
 
 

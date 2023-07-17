@@ -38,12 +38,4 @@
         return $result_array; //returns an array of arrays with type_id and announcement_id as keys. Ex: Array ( [0] => Array ( [type_id] => 1 [announcement_id] => 2,3 ) [1] => Array ( [type_id] => 2 [announcement_id] => 1 ) )
 
     }
-
-    public function setPath($typeId, $contextId=null)
-    {
-        $params = [(int) $typeId];
-        if ($contextId !== null) {
-            $params[] = (int) $contextId;
-        }
-    }
  }
